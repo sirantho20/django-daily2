@@ -31,6 +31,7 @@ DEFAULT_DAISY_SETTINGS = {
 
 # Get DAISY_SETTINGS from settings.py or fall back to defaults
 DAISY_SETTINGS = getattr(settings, "DAISY_SETTINGS", DEFAULT_DAISY_SETTINGS)
+APPS_REORDER = getattr(settings, "APPS_REORDER", {})
 
 # Ensure any missing keys from defaults are included
 for key, value in DEFAULT_DAISY_SETTINGS.items():
