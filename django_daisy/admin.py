@@ -65,53 +65,51 @@ class DaisyAdminSite(admin.AdminSite):
         return render(request, self.index_template or "admin/index.html", context)
 
     # Re-written to support model level reordering with priority
-    def get_app_list(self, request, app_label=None):
-        # Build the base app dict
-        app_dict = self._build_app_dict(request, app_label)
-        order_config = DAISY_SETTINGS.get('APPS_REORDER', {})
-        apps_list = []
-
-        # Iterate apps to apply config and permissions
-        for label, app_info in app_dict.items():
-            cfg = order_config.get(label, {})
-            # App-level permission
+    def get_app_list(self, request):
+        """
+        Build, filter, and order the admin app list according to APPS_REORDER settings.
+        """
+        base_apps = super().get_app_list(request)
+        reorder = DAISY_SETTINGS.get('APPS_REORDER', {})
+        final_apps = []
+        
+        for app in base_apps:
+            label = app['app_label']
+            cfg = reorder.get(label, {})
+            # app-level permission
             app_perm = cfg.get('perm')
             if app_perm and not request.user.has_perm(app_perm):
                 continue
-            # Apply display overrides
-            app_info.update({
-                k: v for k, v in cfg.items()
-                if k in ['name', 'icon', 'divider_title', 'hide', 'priority']
-            })
-            # Skip hidden
-            if app_info.get('hide'):
+            # hide flag
+            if cfg.get('hide'):
                 continue
-            # Attach model order and permissions
-            model_order = cfg.get('models')
+            # filter models by permissions
+            models = app.get('models', [])
             model_perms = cfg.get('model_perms', {})
-            filtered_models = []
-            for m in app_info.get('models', []):
-                model_name = m['object_name']
-                # Determine required permission for model
-                perm = model_perms.get(model_name,
-                    f"{label}.view_{model_name.lower()}")
+            allowed = []
+            for m in models:
+                name = m['object_name']
+                perm = model_perms.get(name, f"{label}.view_{name.lower()}")
                 if request.user.has_perm(perm):
-                    filtered_models.append(m)
-            # If no models remain, skip app
-            if not filtered_models:
+                    allowed.append(m)
+            if not allowed:
                 continue
-            # Replace models and apply ordering
-            if model_order:
-                filtered_models.sort(
-                    key=lambda m: model_order.index(m['object_name'])
-                    if m['object_name'] in model_order else len(model_order)
+            # apply model order if provided
+            order_list = cfg.get('models')
+            if order_list:
+                allowed.sort(
+                    key=lambda m: order_list.index(m['object_name'])
+                    if m['object_name'] in order_list else len(order_list)
                 )
-            app_info['models'] = filtered_models
-            apps_list.append(app_info)
-
-        # Sort apps by priority (default 0) descending
-        apps_list.sort(key=lambda a: a.get('priority', 0), reverse=True)
-        return apps_list
+            app['models'] = allowed
+            # apply display overrides
+            for key in ['name', 'icon', 'divider_title', 'priority']:
+                if key in cfg:
+                    app[key] = cfg[key]
+            final_apps.append(app)
+        # sort apps by priority
+        final_apps.sort(key=lambda a: a.get('priority', 0), reverse=True)
+        return final_apps
 
     def _build_app_dict(self, request, label=None):
         """
