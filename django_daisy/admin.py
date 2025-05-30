@@ -71,7 +71,7 @@ class DaisyAdminSite(admin.AdminSite):
         Build, filter, and order the admin app list according to APPS_REORDER settings.
         """
         base_apps = super().get_app_list(request)
-        reorder = APPS_REORDER or {}
+        reorder = APPS_REORDER
         final_apps = []
         
         for app in base_apps:
