@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from django_daisy._helpers import ASSET_PATH
 from django_daisy.module_settings import DAISY_SETTINGS
+from django_daisy.module_settings import APPS_REORDER
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,7 @@ class DaisyAdminSite(admin.AdminSite):
         Build, filter, and order the admin app list according to APPS_REORDER settings.
         """
         base_apps = super().get_app_list(request)
-        reorder = DAISY_SETTINGS.get('APPS_REORDER', {})
+        reorder = APPS_REORDER or {}
         final_apps = []
         
         for app in base_apps:
