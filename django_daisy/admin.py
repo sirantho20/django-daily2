@@ -37,32 +37,32 @@ class DaisyAdminSite(admin.AdminSite):
         ]
         return urls + super().get_urls()
 
-    def get_log_entries(self, request):
-        from django.contrib.admin.models import LogEntry
+    # def get_log_entries(self, request):
+    #     from django.contrib.admin.models import LogEntry
 
-        return LogEntry.objects.select_related("content_type", "user")
+    #     return LogEntry.objects.select_related("content_type", "user")
 
-    def index(self, request, extra_context=None):
-        """
-        Display the main admin index page, which lists all of the installed
-        apps that have been registered in this site.
-        """
+    # def index(self, request, extra_context=None):
+    #     """
+    #     Display the main admin index page, which lists all of the installed
+    #     apps that have been registered in this site.
+    #     """
 
-        logentry_changelist_url = reverse("admin:admin_logentry_changelist")
+    #     logentry_changelist_url = reverse("admin:admin_logentry_changelist")
 
-        app_list = self.get_app_list(request)
+    #     app_list = self.get_app_list(request)
 
-        context = {
-            **self.each_context(request),
-            "latest_history": self.get_log_entries(request)[:15],
-            "title": self.index_title,
-            "app_list": app_list,
-            "logentry_changelist_url": logentry_changelist_url,
-            **(extra_context or {}),
-        }
+    #     context = {
+    #         **self.each_context(request),
+    #         "latest_history": self.get_log_entries(request)[:15],
+    #         "title": self.index_title,
+    #         "app_list": app_list,
+    #         "logentry_changelist_url": logentry_changelist_url,
+    #         **(extra_context or {}),
+    #     }
 
-        request.current_app = self.name
-        return render(request, self.index_template or "admin/index.html", context)
+    #     request.current_app = self.name
+    #     return render(request, self.index_template or "admin/index.html", context)
 
     # Re-written to support model level reordering with priority
     def get_app_list(self, request):
@@ -143,7 +143,7 @@ class DaisyAdminSite(admin.AdminSite):
             change_language_url = None
 
         daisy_settings = DAISY_SETTINGS.copy()
-        daisy_settings.pop("APPS_REORDER", None)
+        # daisy_settings.pop("APPS_REORDER", None)
 
         return {
             **context,
