@@ -142,9 +142,12 @@ class DaisyAdminSite(admin.AdminSite):
         except:
             change_language_url = None
 
+        daisy_settings = DAISY_SETTINGS.copy()
+        daisy_settings.pop("APPS_REORDER", None)
+
         return {
             **context,
-            **DAISY_SETTINGS,
+            **daisy_settings,
             "change_language_url": change_language_url,
             "logo": self.get_logo(request),
             "can_delete_popup": "",
